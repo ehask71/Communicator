@@ -19,7 +19,7 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustResize|stateHidden" >
+            android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
 
         <meta-data
@@ -43,4 +43,3 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
 </manifest>
-
