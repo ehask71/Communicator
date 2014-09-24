@@ -28,6 +28,10 @@ import android.widget.TextView;
 
 import android.util.Log;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -265,7 +269,10 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
             // TODO: attempt authentication against a network service.
 
             try {
-                // Simulate network access.
+                List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+                nvps.add(new BasicNameValuePair("email", mEmail));
+                nvps.add(new BasicNameValuePair("password", mPassword));
+                JSONObject jObj = JSONParser.getJSONFromPost("http://highoctanebrands.com/iomc/Communicate/v1/login", nvps);
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 return false;
