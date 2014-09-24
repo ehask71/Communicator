@@ -25,7 +25,7 @@ public class HomeActivity extends Activity {
         String userEmail = sharedPreferences.getString("userEmail", null);
         //Log.d(Constants.LOG, "Stored EMAIL" + userEmail);
         if (userEmail == null) {
-            //Log.d(Constants.LOG, "User Not Logged In");
+            Log.d(Constants.LOG, "User Not Logged In");
             Intent i = new Intent(HomeActivity.this, LoginActivity.class);
             startActivity(i);
             // close this activity
