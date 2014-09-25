@@ -6,8 +6,11 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -38,9 +41,8 @@ import java.util.List;
 
 /**
  * A login screen that offers login via email/password.
-
  */
-public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
+public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -150,6 +152,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
             mAuthTask.execute((Void) null);
         }
     }
+
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
         return email.contains("@");
@@ -258,6 +261,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
 
         private final String mEmail;
         private final String mPassword;
+        private JSONObject jObj = null;
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -268,26 +272,35 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
 
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair("email", mEmail));
+            nvps.add(new BasicNameValuePair("password", mPassword));
+            jObj = JSONParser.getJSONFromPost("http://highoctanebrands.com/iomc/Communicate/v1/login", nvps);
+            //Log.d(Constants.LOG,jObj.toString());
             try {
-                List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-                nvps.add(new BasicNameValuePair("email", mEmail));
-                nvps.add(new BasicNameValuePair("password", mPassword));
-                JSONObject jObj = JSONParser.getJSONFromPost("http://highoctanebrands.com/iomc/Communicate/v1/login", nvps);
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
+                Boolean login = jObj.getBoolean("error");
+                Log.d(Constants.LOG,login.toString());
+                if (!login) {
+                    Log.d(Constants.LOG,"We have a successful login!!");
+                    return true;
+                }
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
                 return false;
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
+
+            /*for (String credential : DUMMY_CREDENTIALS) {
                 String[] pieces = credential.split(":");
                 if (pieces[0].equals(mEmail)) {
                     // Account exists, return true if the password matches.
                     return pieces[1].equals(mPassword);
                 }
-            }
+            }*/
 
             // TODO: register the new account here.
-            return true;
+            return false;
         }
 
         @Override
@@ -296,8 +309,22 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>{
             showProgress(false);
 
             if (success) {
-                Log.d(Constants.LOG, "Success!!!!!");
-                finish();
+                SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.highoctanebrands.communicator", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                // Store the Data
+                try {
+                    editor.putString("userEmail", jObj.getString("email"));
+                    editor.putString("apiKey", jObj.getString("apiKey"));
+                    editor.commit();
+                    Log.d(Constants.LOG, "Success!!!!!");
+                    // Redirect Home
+                    Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+                    startActivity(i);
+                    finish();
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
