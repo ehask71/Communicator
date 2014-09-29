@@ -309,7 +309,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             showProgress(false);
 
             if (success) {
-                SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.highoctanebrands.communicator", Context.MODE_PRIVATE);
+                SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(LoginActivity.class.getSimpleName(), Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 // Store the Data
                 try {
