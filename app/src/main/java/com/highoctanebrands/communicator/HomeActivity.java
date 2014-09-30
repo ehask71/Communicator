@@ -41,6 +41,8 @@ public class HomeActivity extends Activity {
             if (regid.isEmpty()) {
                 registerInBackground();
             }
+        } else {
+            Log.i(Constants.LOG,"No Valid Google Play Services APK Found");
         }
     }
 
