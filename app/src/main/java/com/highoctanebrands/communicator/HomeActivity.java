@@ -171,7 +171,7 @@ public class HomeActivity extends Activity {
      * shared preferences.
      */
     private void registerInBackground() {
-
+        new BackendNotify().execute("");
     }
 
     private class BackendNotify extends AsyncTask<String, Void, String> {
