@@ -4,18 +4,20 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import com.google.android.gms.common.GooglePlayServicesUtil;
+
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import java.util.concurrent.atomic.AtomicInteger;
+
 import java.io.IOException;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.AsyncTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class HomeActivity extends Activity {
@@ -77,11 +79,11 @@ public class HomeActivity extends Activity {
 
     /**
      * Gets the current registration ID for application on GCM service.
-     * <p>
+     * <p/>
      * If result is empty, the app needs to register.
      *
      * @return registration ID, or empty string if there is no existing
-     *         registration ID.
+     * registration ID.
      */
     private String getRegistrationId(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
@@ -146,48 +148,78 @@ public class HomeActivity extends Activity {
     }
 
     /**
+     * Stores the registration ID and app versionCode in the application's
+     * {@code SharedPreferences}.
+     *
+     * @param context application's context.
+     * @param regId   registration ID
+     */
+    private void storeRegistrationId(Context context, String regId) {
+        final SharedPreferences prefs = getGCMPreferences(context);
+        int appVersion = getAppVersion(context);
+        Log.i(Constants.LOG, "Saving regId on app version " + appVersion);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(Constants.PROPERTY_REG_ID, regId);
+        editor.putInt(Constants.PROPERTY_APP_VERSION, appVersion);
+        editor.commit();
+    }
+
+    /**
      * Registers the application with GCM servers asynchronously.
-     * <p>
+     * <p/>
      * Stores the registration ID and app versionCode in the application's
      * shared preferences.
      */
     private void registerInBackground() {
-        new AsyncTask() {
-            @Override
-            protected String doInBackground(Void... params) {
-                String msg = "";
-                try {
-                    if (gcm == null) {
-                        gcm = GoogleCloudMessaging.getInstance(context);
-                    }
-                    regid = gcm.register(Constants.GCMSender);
-                    msg = "Device registered, registration ID=" + regid;
 
-                    // You should send the registration ID to your server over HTTP,
-                    // so it can use GCM/HTTP or CCS to send messages to your app.
-                    // The request to your server should be authenticated if your app
-                    // is using accounts.
-                    sendRegistrationIdToBackend();
+    }
 
-                    // For this demo: we don't need to send it because the device
-                    // will send upstream messages to a server that echo back the
-                    // message using the 'from' address in the message.
-
-                    // Persist the regID - no need to register again.
-                    storeRegistrationId(context, regid);
-                } catch (IOException ex) {
-                    msg = "Error :" + ex.getMessage();
-                    // If there is an error, don't just keep trying to register.
-                    // Require the user to click a button again, or perform
-                    // exponential back-off.
+    private class BackendNotify extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... strings) {
+            String msg = "";
+            try {
+                if (gcm == null) {
+                    gcm = GoogleCloudMessaging.getInstance(context);
                 }
-                return msg;
-            }
+                regid = gcm.register(Constants.GCMSender);
+                msg = "Device registered, registration ID=" + regid;
 
-            //@Override
-            //protected void onPostExecute(String msg) {
-              // mDisplay.append(msg + "\n");
-            //}
-        }.execute(null, null, null);
+                // You should send the registration ID to your server over HTTP,
+                // so it can use GCM/HTTP or CCS to send messages to your app.
+                // The request to your server should be authenticated if your app
+                // is using accounts.
+                sendRegistrationIdToBackend();
+
+                // For this demo: we don't need to send it because the device
+                // will send upstream messages to a server that echo back the
+                // message using the 'from' address in the message.
+
+                // Persist the regID - no need to register again.
+                storeRegistrationId(context, regid);
+            } catch (IOException ex) {
+                msg = "Error :" + ex.getMessage();
+                // If there is an error, don't just keep trying to register.
+                // Require the user to click a button again, or perform
+                // exponential back-off.
+            }
+            return msg;
+        }
+
+
+        //@Override
+        //protected void onPostExecute(String msg) {
+        // mDisplay.append(msg + "\n");
+        //}
+    }
+
+    /**
+     * Sends the registration ID to your server over HTTP, so it can use GCM/HTTP
+     * or CCS to send messages to your app. Not needed for this demo since the
+     * device sends upstream messages to a server that echoes back the message
+     * using the 'from' address in the message.
+     */
+    private void sendRegistrationIdToBackend() {
+        // Your implementation here.
     }
 }
